@@ -8,6 +8,16 @@ from stick_balance.physics import Action, CartPoleEnv
 from stick_balance.render import draw, init_display
 
 
+def advance_frame(env: CartPoleEnv, action: Action, done: bool) -> tuple[int, bool]:
+    """Advance one frame; a fallen run keeps simulating with controls locked."""
+    if done:
+        env.step(Action.NONE)
+        return 0, True
+
+    _, reward, fell = env.step(action)
+    return int(reward), fell
+
+
 def main() -> None:
     headless = "--headless" in sys.argv
     screen = init_display(headless=headless)
@@ -38,9 +48,8 @@ def main() -> None:
         elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             action = Action.RIGHT
 
-        if not done:
-            _, reward, done = env.step(action)
-            score += int(reward)
+        gained, done = advance_frame(env, action, done)
+        score += gained
 
         draw(screen, env, score=score, done=done)
         pygame.display.flip()

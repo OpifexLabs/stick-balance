@@ -13,7 +13,7 @@ pip install pygame numpy pytest
 PYTHONPATH=src python -m stick_balance.game
 ```
 
-Keys: `←` / `→` or `A` / `D` to push the cart. `R` resets. `Esc` quits.
+Keys: `←` / `→` or `A` / `D` to push the cart. The run ends when the pole reaches 90° (horizontal). Physics keeps running after a fall, but movement controls stay locked until `R` resets. `Esc` quits.
 
 Headless screenshots:
 

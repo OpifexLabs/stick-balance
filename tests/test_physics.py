@@ -1,3 +1,5 @@
+from math import radians
+
 from stick_balance.physics import Action, CartPoleEnv, PoleState
 
 
@@ -27,12 +29,32 @@ def test_left_force_moves_cart_left():
     assert env.state.x < -0.05
 
 
-def test_large_angle_is_fallen():
+def test_pole_can_fall_until_horizontal():
     env = CartPoleEnv(seed=0)
     env.reset()
-    env.state = PoleState(x=0.0, x_dot=0.0, theta=0.5, theta_dot=0.0)
+    env.state = PoleState(x=0.0, x_dot=0.0, theta=radians(89), theta_dot=0.0)
+    _, _, done = env.step(Action.NONE)
+    assert done is False
+
+    env.state = PoleState(x=0.0, x_dot=0.0, theta=radians(90), theta_dot=0.0)
     _, _, done = env.step(Action.NONE)
     assert done is True
+
+
+def test_cart_position_does_not_end_run_before_pole_is_horizontal():
+    env = CartPoleEnv(seed=0)
+    env.state = PoleState(x=env.x_limit + 1.0, x_dot=0.0, theta=0.0, theta_dot=0.0)
+    _, _, done = env.step(Action.NONE)
+    assert done is False
+
+
+def test_physics_keeps_advancing_with_no_input_after_fall():
+    env = CartPoleEnv(seed=0)
+    env.state = PoleState(x=0.0, x_dot=0.0, theta=radians(90), theta_dot=1.0)
+    before = env.state
+    after, _, done = env.step(Action.NONE)
+    assert done is True
+    assert after != before
 
 
 def test_upright_idle_is_not_immediately_done():

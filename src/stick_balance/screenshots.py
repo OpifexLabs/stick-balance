@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math import radians
 from pathlib import Path
 
 from stick_balance.physics import Action, CartPoleEnv, PoleState
@@ -27,8 +28,7 @@ def main() -> list[Path]:
     p2 = out / "02-correcting.png"
     snapshot(str(p2), env.state, score=score, done=done)
 
-    env.state = PoleState(x=0.3, x_dot=0.4, theta=0.35, theta_dot=1.2)
-    _, _, done = env.step(Action.NONE)
+    env.state = PoleState(x=0.3, x_dot=0.4, theta=radians(90), theta_dot=1.2)
     p3 = out / "03-fallen.png"
     snapshot(str(p3), env.state, score=score, done=True)
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import IntEnum
-from math import cos, sin
+from math import cos, pi, sin
 import random
 
 
@@ -30,7 +30,8 @@ class CartPoleEnv:
     force_mag = 10.0
     dt = 0.02
     x_limit = 2.4
-    theta_limit = 12 * 2 * 3.141592653589793 / 360
+    # A run is lost only once the pole reaches horizontal (90 degrees).
+    theta_limit = pi / 2
 
     def __init__(self, seed: int | None = None) -> None:
         self._rng = random.Random(seed)
@@ -69,6 +70,6 @@ class CartPoleEnv:
         theta_dot = theta_dot + self.dt * thetaacc
         self.state = PoleState(x, x_dot, theta, theta_dot)
 
-        done = abs(x) > self.x_limit or abs(theta) > self.theta_limit
+        done = abs(theta) >= self.theta_limit
         reward = 0.0 if done else 1.0
         return self.state, reward, done
