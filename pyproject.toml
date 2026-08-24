@@ -1,0 +1,21 @@
+[project]
+name = "stick-balance"
+version = "0.1.0"
+description = "Manual left/right inverted-pendulum game — first step toward RL robotics."
+requires-python = ">=3.11"
+readme = "README.md"
+authors = [{ name = "Opifex" }]
+
+[project.scripts]
+stick-balance = "stick_balance.game:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
