@@ -87,7 +87,14 @@ def propose(best: PidGains, iteration: int, rng: random.Random) -> PidGains:
     return PidGains(**values)
 
 
-def run(iterations: int = ITERATIONS, seed: int = 7) -> tuple[PidGains, EvalMetrics, Path]:
+def run(
+    iterations: int = ITERATIONS,
+    seed: int = 7,
+    *,
+    start_iteration: int = 0,
+    initial: PidGains | None = None,
+    append: bool = False,
+) -> tuple[PidGains, EvalMetrics, Path]:
     rng = random.Random(seed)
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
@@ -104,11 +111,14 @@ def run(iterations: int = ITERATIONS, seed: int = 7) -> tuple[PidGains, EvalMetr
         "settle_abs_theta",
         *GAIN_NAMES,
     ]
-    best = SEED
+    best = initial if initial is not None else SEED
     best_metrics = evaluate_gains(best)
     rows = []
-    for i in range(iterations):
-        candidate = propose(best, i, rng)
+    for offset in range(iterations):
+        i = start_iteration + offset
+        candidate = best if (append and offset == 0) else propose(best, i, rng)
+        if append and offset == 0:
+            candidate = propose(best, max(i, 1), rng)
         metrics = evaluate_gains(candidate)
         if metrics.cost < best_metrics.cost:
             best = candidate
@@ -122,15 +132,29 @@ def run(iterations: int = ITERATIONS, seed: int = 7) -> tuple[PidGains, EvalMetr
             f"best={best_metrics.cost:.3f}",
             flush=True,
         )
-    with LOG_PATH.open("w", newline="") as handle:
+    mode = "a" if append and LOG_PATH.exists() else "w"
+    with LOG_PATH.open(mode, newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
-        writer.writeheader()
+        if mode == "w":
+            writer.writeheader()
         writer.writerows(rows)
     return best, best_metrics, LOG_PATH
 
 
 if __name__ == "__main__":
-    gains, metrics, path = run()
+    import sys
+
+    extra = "--continue" in sys.argv
+    if extra:
+        gains, metrics, path = run(
+            iterations=200,
+            seed=19,
+            start_iteration=100,
+            initial=BEST_GAINS,
+            append=True,
+        )
+    else:
+        gains, metrics, path = run()
     print("---")
     print("BEST", gains)
     print(
@@ -138,4 +162,3 @@ if __name__ == "__main__":
         f"settle|x|={metrics.settle_abs_x:.6f} settle|θ|={metrics.settle_abs_theta:.6f}"
     )
     print("log", path)
-    _ = BEST_GAINS

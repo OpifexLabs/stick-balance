@@ -23,14 +23,14 @@ class PidGains:
         return asdict(self)
 
 
-# Frozen from logged search: iteration 80 of 100 in logs/pid_tune.csv
+# Frozen from logged search: iteration 299 of 300 in logs/pid_tune.csv
 BEST_GAINS = PidGains(
-    kp_theta=61.429406,
-    ki_theta=0.549106,
-    kd_theta=18.813061,
-    kp_x=2.8,
-    ki_x=0.020416,
-    kd_x=1.896718,
+    kp_theta=66.332153,
+    ki_theta=0.478406,
+    kd_theta=19.512182,
+    kp_x=2.853245,
+    ki_x=0.015591,
+    kd_x=1.556151,
 )
 
 

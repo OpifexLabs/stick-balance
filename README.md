@@ -13,14 +13,14 @@ pip install pygame numpy pytest
 PYTHONPATH=src python -m stick_balance.game --pid
 ```
 
-Keys: `←` / `→` or `A` / `D` to push the cart. `P` toggles the logged PID. The cart and pole remain inside the window; horizontal drag prevents endless coasting. The run ends when the pole reaches 90° (horizontal). Physics keeps running with angular damping after a fall, but movement controls stay locked until `R` resets. `Esc` quits.
+Keys: `←` / `→` shove the cart even in PID mode; release and the PID resumes. `P` toggles PID. The cart and pole remain inside the window; horizontal drag prevents endless coasting. The run ends when the pole reaches 90° (horizontal). Physics keeps running with angular damping after a fall, but movement controls stay locked until `R` resets. `Esc` quits.
 
 ## PID
 
-`BEST_GAINS` comes from 100 logged iterations in `logs/pid_tune.csv`. The search minimized late-horizon motion, not just survival. Re-run:
+`BEST_GAINS` comes from 300 logged iterations in `logs/pid_tune.csv` (100 + 200 refine). The search minimized late-horizon motion, not just survival. Re-run:
 
 ```bash
-PYTHONPATH=src python -m stick_balance.tune_pid
+PYTHONPATH=src python -m stick_balance.tune_pid --continue
 ```
 
 Headless screenshots:

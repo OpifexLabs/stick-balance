@@ -4,6 +4,7 @@ import sys
 
 import pygame
 
+from stick_balance.control import select_control
 from stick_balance.physics import Action, CartPoleEnv
 from stick_balance.pid import BEST_GAINS, StatePid
 from stick_balance.render import draw, init_display
@@ -33,8 +34,6 @@ def main() -> None:
 
     running = True
     while running:
-        action = Action.NONE
-        force = None
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -51,24 +50,33 @@ def main() -> None:
                     pid.reset()
 
         keys = pygame.key.get_pressed()
-        if auto_pid and not done:
-            force = pid.force(env.state)
-        elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            action = Action.LEFT
-        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            action = Action.RIGHT
+        cmd = select_control(
+            auto_pid=auto_pid,
+            done=done,
+            left=bool(keys[pygame.K_LEFT] or keys[pygame.K_a]),
+            right=bool(keys[pygame.K_RIGHT] or keys[pygame.K_d]),
+        )
 
-        if force is None:
-            gained, done = advance_frame(env, action, done)
-        elif done:
+        if cmd.mode == "lock":
             env.step(Action.NONE)
             gained = 0
-        else:
-            _, reward, done = env.step_force(force)
+        elif cmd.mode == "pid":
+            _, reward, done = env.step_force(pid.force(env.state))
             gained = int(reward)
+        else:
+            if cmd.override:
+                pid.reset()
+            gained, done = advance_frame(env, cmd.action, done)
         score += gained
 
-        draw(screen, env, score=score, done=done, auto_pid=auto_pid)
+        draw(
+            screen,
+            env,
+            score=score,
+            done=done,
+            auto_pid=auto_pid,
+            override=cmd.override,
+        )
         pygame.display.flip()
         clock.tick(50)
 

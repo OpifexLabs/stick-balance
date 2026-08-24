@@ -38,6 +38,7 @@ def draw(
     score: int,
     done: bool,
     auto_pid: bool = False,
+    override: bool = False,
 ) -> None:
     surface.fill(BG)
     font = pygame.font.SysFont("DejaVu Sans", 20)
@@ -65,10 +66,12 @@ def draw(
     pygame.draw.circle(surface, POLE, (int(pole_x), int(pole_y)), 8)
 
     title = "Stick Balance — hold the pole upright"
-    hint = "Left / Right   |   P PID   |   R reset   |   Esc quit"
+    hint = "Left / Right shove PID   |   P PID   |   R reset   |   Esc quit"
     status = "FALLEN — press R" if done else f"score {score}"
     if auto_pid and not done:
         status = f"PID hold   score {score}"
+    if override and not done:
+        status = f"PID override   score {score}"
     color = FAIL if done else TEXT
     surface.blit(font.render(title, True, TEXT), (24, 18))
     surface.blit(small.render(hint, True, MUTED), (24, 48))
