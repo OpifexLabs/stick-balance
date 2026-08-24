@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import IntEnum
-from math import cos, pi, sin
+from math import atan2, cos, pi, sin
 import random
 
 
@@ -29,7 +29,10 @@ class CartPoleEnv:
     pole_length = 0.5
     force_mag = 10.0
     dt = 0.02
-    x_limit = 2.4
+    # Keep the cart and full pole inside the rendered track at every angle.
+    x_limit = 1.6
+    cart_drag = 1.2
+    pole_drag = 0.8
     # A run is lost only once the pole reaches horizontal (90 degrees).
     theta_limit = pi / 2
 
@@ -64,10 +67,27 @@ class CartPoleEnv:
         )
         xacc = temp - polemass_length * thetaacc * costheta / total_mass
 
-        x = x + self.dt * x_dot
+        # Viscous drag dissipates energy instead of allowing endless coasting
+        # or rotation. Semi-implicit Euler is substantially more stable for
+        # this damped mechanical system than updating position first.
+        xacc -= self.cart_drag * x_dot
+        thetaacc -= self.pole_drag * theta_dot
         x_dot = x_dot + self.dt * xacc
-        theta = theta + self.dt * theta_dot
         theta_dot = theta_dot + self.dt * thetaacc
+        x = x + self.dt * x_dot
+        theta = theta + self.dt * theta_dot
+
+        # The visible track is a hard, inelastic stop. Cancel only velocity
+        # pointing through a wall so the cart can immediately move away again.
+        if x >= self.x_limit:
+            x = self.x_limit
+            x_dot = min(x_dot, 0.0)
+        elif x <= -self.x_limit:
+            x = -self.x_limit
+            x_dot = max(x_dot, 0.0)
+
+        # Keep angles numerically bounded while preserving the same direction.
+        theta = atan2(sin(theta), cos(theta))
         self.state = PoleState(x, x_dot, theta, theta_dot)
 
         done = abs(theta) >= self.theta_limit
