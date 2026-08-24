@@ -32,7 +32,13 @@ def init_display(headless: bool) -> pygame.Surface:
     return pygame.display.set_mode((WIDTH, HEIGHT), flags)
 
 
-def draw(surface: pygame.Surface, env: CartPoleEnv, score: int, done: bool) -> None:
+def draw(
+    surface: pygame.Surface,
+    env: CartPoleEnv,
+    score: int,
+    done: bool,
+    auto_pid: bool = False,
+) -> None:
     surface.fill(BG)
     font = pygame.font.SysFont("DejaVu Sans", 20)
     small = pygame.font.SysFont("DejaVu Sans", 16)
@@ -59,8 +65,10 @@ def draw(surface: pygame.Surface, env: CartPoleEnv, score: int, done: bool) -> N
     pygame.draw.circle(surface, POLE, (int(pole_x), int(pole_y)), 8)
 
     title = "Stick Balance — hold the pole upright"
-    hint = "Left / Right arrows   |   R reset   |   Esc quit"
+    hint = "Left / Right   |   P PID   |   R reset   |   Esc quit"
     status = "FALLEN — press R" if done else f"score {score}"
+    if auto_pid and not done:
+        status = f"PID hold   score {score}"
     color = FAIL if done else TEXT
     surface.blit(font.render(title, True, TEXT), (24, 18))
     surface.blit(small.render(hint, True, MUTED), (24, 48))

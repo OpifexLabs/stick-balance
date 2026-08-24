@@ -50,7 +50,10 @@ class CartPoleEnv:
         return self.state
 
     def step(self, action: Action | int) -> tuple[PoleState, float, bool]:
-        force = self.force_mag * int(action)
+        return self.step_force(self.force_mag * float(int(action)))
+
+    def step_force(self, force: float) -> tuple[PoleState, float, bool]:
+        force = max(-self.force_mag, min(self.force_mag, float(force)))
         x, x_dot, theta, theta_dot = (
             self.state.x,
             self.state.x_dot,
